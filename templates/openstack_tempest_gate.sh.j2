@@ -93,6 +93,7 @@ function gen_test_list_all {
 # Generate test list from official defcore/refstack spec
 function gen_test_list_defcore {
   branch=${1:-kilo}
+  component=${2:-all}
   string=$(python <<END
 import json
 import requests
@@ -108,8 +109,14 @@ url=("https://raw.githubusercontent.com/openstack/"
      % {'version': map[branch]}
      )
 response = requests.get(url)
-for capability in response.json()['capabilities'].values():
-  for test in capability['tests']:
+required_capabilities = []
+for component_name, component_dict in response['components'].items():
+  if compent in ('all', component_name):
+    capabilities.extend(component_dict['required'])
+
+capabilities = response.json()['capabilities']
+for capability in required_capabilities:
+  for test in capabilities[capability]['tests']:
     print test
 END
 )
@@ -128,9 +135,19 @@ function gen_test_list_defcore_kilo {
   gen_test_list_defcore kilo
 }
 
+# defcore compute tests for kilo
+function gen_test_list_defcore_kilo {
+  gen_test_list_defcore kilo compute
+}
+
 # defcore tests for liberty
 function gen_test_list_defcore_liberty {
   gen_test_list_defcore liberty
+}
+
+# defcore compute tests for liberty
+function gen_test_list_defcore_liberty {
+  gen_test_list_defcore liberty compute
 }
 
 function exit_msg {
